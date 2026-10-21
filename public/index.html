@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AutoValuate AI | Regression, Classification & Clustering Suite</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+  <style>
+    :root {
+      --bg-dark: #0b0f19;
+      --card-bg: rgba(30, 41, 59, 0.6);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --primary: #38bdf8;
+      --primary-glow: rgba(56, 189, 248, 0.25);
+      --purple: #818cf8;
+      --emerald: #10b981;
+      --rose: #f43f5e;
+      --amber: #f59e0b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    body {
+      background: radial-gradient(circle at top right, #172554, #0b0f19 70%);
+      color: var(--text-main);
+      min-height: 100vh;
+      padding: 24px 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    .hero {
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.85) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 20px;
+      padding: 28px 32px;
+      box-shadow: 0 16px 36px -10px rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(12px);
+      margin-bottom: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      top: -60px;
+      right: -60px;
+      width: 200px;
+      height: 200px;
+      background: radial-gradient(circle, rgba(56, 189, 248, 0.2) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-title {
+      font-size: 2.2rem;
+      font-weight: 800;
+      background: linear-gradient(90deg, #38bdf8, #818cf8, #c084fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 6px;
+    }
+
+    .hero-sub {
+      color: var(--text-muted);
+      font-size: 1rem;
+    }
+
+    /* Top KPI Cards */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .kpi-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 16px 20px;
+      text-align: center;
+      backdrop-filter: blur(8px);
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .kpi-card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(99, 102, 241, 0.4);
+    }
+
+    .kpi-val {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 4px;
+    }
+
+    .kpi-lbl {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+    }
+
+    /* Navigation Tabs */
+    .tabs-nav {
+      display: flex;
+      gap: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 12px;
+      margin-bottom: 24px;
+      overflow-x: auto;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      padding: 10px 18px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.95rem;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .tab-btn:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .tab-btn.active {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: rgba(56, 189, 248, 0.4);
+      color: var(--primary);
+    }
+
+    /* Tab Content Panels */
+    .tab-panel {
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .tab-panel.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Grid Layouts for inputs & results */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 820px) {
+      .two-col { grid-template-columns: 1fr; }
+    }
+
+    .input-section {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 24px;
+      backdrop-filter: blur(10px);
+    }
+
+    .input-group {
+      margin-bottom: 16px;
+    }
+
+    .input-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #cbd5e1;
+      margin-bottom: 6px;
+    }
+
+    .input-group input,
+    .input-group select {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      padding: 10px 12px;
+      color: #fff;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .input-group input:focus,
+    .input-group select:focus {
+      border-color: var(--primary);
+    }
+
+    .sub-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .checkbox-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.88rem;
+      color: #cbd5e1;
+      cursor: pointer;
+      margin-bottom: 8px;
+    }
+
+    .checkbox-item input {
+      accent-color: var(--primary);
+      width: 16px;
+      height: 16px;
+    }
+
+    /* Buttons */
+    .btn-action {
+      width: 100%;
+      background: linear-gradient(135deg, #0ea5e9, #6366f1);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 13px 20px;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      box-shadow: 0 8px 20px -4px rgba(14, 165, 233, 0.5);
+      transition: opacity 0.2s, transform 0.1s;
+      margin-top: 10px;
+    }
+
+    .btn-action:hover {
+      opacity: 0.95;
+      transform: translateY(-1px);
+    }
+
+    .btn-action:active {
+      transform: translateY(0);
+    }
+
+    /* Result Cards */
+    .result-card {
+      background: linear-gradient(135deg, rgba(14, 165, 233, 0.12) 0%, rgba(99, 102, 241, 0.12) 100%);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      border-radius: 16px;
+      padding: 24px;
+      text-align: center;
+      margin-bottom: 20px;
+      backdrop-filter: blur(10px);
+    }
+
+    .result-price {
+      font-size: 2.8rem;
+      font-weight: 800;
+      color: var(--primary);
+      margin: 8px 0;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 6px 16px;
+      border-radius: 9999px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      margin-top: 10px;
+    }
+
+    .badge-success {
+      background: rgba(16, 185, 129, 0.2);
+      border: 1px solid var(--emerald);
+      color: var(--emerald);
+    }
+
+    .badge-danger {
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid var(--rose);
+      color: var(--rose);
+    }
+
+    .chart-box {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 16px;
+      margin-top: 20px;
+    }
+
+    /* Table */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: 0.88rem;
+    }
+
+    th, td {
+      padding: 10px 14px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    th {
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 40px;
+      padding: 20px 0;
+      color: #64748b;
+      font-size: 0.85rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Hero Banner -->
+    <header class="hero">
+      <h1 class="hero-title">🧠 Applied ML Suite: Regression, Classification & Clustering</h1>
+      <p class="hero-sub">Vercel Production Dashboard: Car Price Valuation, Loan Default Risk & Customer Personality Segmentation</p>
+    </header>
+
+    <!-- Top KPI Cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-val">0.965 R²</div>
+        <div class="kpi-lbl">Regression (Car Price RF)</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-val">78.8% Acc</div>
+        <div class="kpi-lbl">Classification (Loan Default)</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-val">4 Clusters</div>
+        <div class="kpi-lbl">Customer Segments (K-Means)</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-val">2,240</div>
+        <div class="kpi-lbl">Customer Records Clustered</div>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <nav class="tabs-nav">
+      <button class="tab-btn active" onclick="switchTab(0)">📈 Car Price Prediction (Regression)</button>
+      <button class="tab-btn" onclick="switchTab(1)">🛡️ Vehicle Loan Default (Classification)</button>
+      <button class="tab-btn" onclick="switchTab(2)">👥 Customer Segmentation (Clustering)</button>
+      <button class="tab-btn" onclick="switchTab(3)">📊 Benchmarks & Model Evaluation</button>
+    </nav>
+
+    <!-- TAB 1: REGRESSION -->
+    <section class="tab-panel active" id="tab-0">
+      <div class="two-col">
+        <div class="input-section">
+          <h3 style="margin-bottom: 16px; color: var(--primary);">🚘 Vehicle Identity & Specs</h3>
+          <div class="input-group">
+            <label>Brand / Series</label>
+            <select id="reg-brand">
+              <option value="city" selected>City</option>
+              <option value="i20">i20</option>
+              <option value="verna">Verna</option>
+              <option value="fortuner">Fortuner</option>
+              <option value="innova">Innova</option>
+              <option value="creta">Creta</option>
+              <option value="ciaz">Ciaz</option>
+              <option value="swift">Swift</option>
+              <option value="ertiga">Ertiga</option>
+              <option value="corolla">Corolla</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label>Year of Manufacture (Age calculated relative to 2026)</label>
+            <input type="number" id="reg-year" value="2018" min="2003" max="2025" onchange="updateAge()">
+            <small id="reg-age-text" style="color: var(--text-muted); font-size: 0.8rem; margin-top: 4px; display: block;">Estimated Vehicle Age: 8 years</small>
+          </div>
+          <div class="input-group">
+            <label>Ex-Showroom Price (₹ in Lakhs)</label>
+            <input type="number" id="reg-price" value="9.54" step="0.1" min="0.5" max="100.0">
+          </div>
+          <div class="input-group">
+            <label>Odometer Reading (Kilometers)</label>
+            <input type="number" id="reg-kms" value="35000" step="1000" min="500">
+          </div>
+          <div class="sub-grid">
+            <div class="input-group">
+              <label>Fuel Type</label>
+              <select id="reg-fuel">
+                <option value="Petrol" selected>Petrol</option>
+                <option value="Diesel">Diesel</option>
+                <option value="CNG">CNG</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label>Transmission</label>
+              <select id="reg-trans">
+                <option value="Manual" selected>Manual</option>
+                <option value="Automatic">Automatic</option>
+              </select>
+            </div>
+          </div>
+          <div class="sub-grid">
+            <div class="input-group">
+              <label>Seller Type</label>
+              <select id="reg-seller">
+                <option value="Dealer" selected>Dealer</option>
+                <option value="Individual">Individual</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label>Previous Owners</label>
+              <select id="reg-owner">
+                <option value="0" selected>First Owner (0)</option>
+                <option value="1">1 Prior Owner</option>
+                <option value="3">3+ Prior Owners</option>
+              </select>
+            </div>
+          </div>
+          <button class="btn-action" onclick="predictCar()">🚀 Calculate Estimated Resale Price</button>
+        </div>
+
+        <div>
+          <div class="result-card" id="car-result-card">
+            <div style="font-size: 0.85rem; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.08em;">Estimated Resale Price</div>
+            <div class="result-price" id="car-price-display">₹ 6.45 Lakhs</div>
+            <div style="color: var(--text-muted); font-size: 0.9rem;" id="car-ci-display">
+              Confidence Interval (±MAE): <b>₹ 5.83 L</b> — <b>₹ 7.07 L</b>
+            </div>
+          </div>
+          <div class="chart-box" id="gauge-container" style="height: 250px;"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: CLASSIFICATION -->
+    <section class="tab-panel" id="tab-1">
+      <div class="two-col">
+        <div class="input-section">
+          <h3 style="margin-bottom: 16px; color: var(--primary);">🛡️ Loan Applicant Parameters</h3>
+          <div class="sub-grid">
+            <div class="input-group">
+              <label>Disbursed Amount (₹)</label>
+              <input type="number" id="loan-disbursed" value="55000" step="2500" oninput="calcLTV()">
+            </div>
+            <div class="input-group">
+              <label>Asset Total Cost (₹)</label>
+              <input type="number" id="loan-asset" value="75000" step="2500" oninput="calcLTV()">
+            </div>
+          </div>
+          <div style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 14px;" id="ltv-display">
+            Calculated LTV: <b>73.33%</b>
+          </div>
+          <div class="sub-grid">
+            <div class="input-group">
+              <label>Employment Type</label>
+              <select id="loan-emp">
+                <option value="Salaried" selected>Salaried</option>
+                <option value="Self employed">Self employed</option>
+                <option value="Missing">Missing</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label>Credit Score (0 - 900)</label>
+              <input type="number" id="loan-cns" value="650" min="0" max="900">
+            </div>
+          </div>
+          <div class="input-group">
+            <label>Credit Score Description</label>
+            <select id="loan-cns-desc">
+              <option value="A-Very Low Risk">A-Very Low Risk</option>
+              <option value="B-Very Low Risk">B-Very Low Risk</option>
+              <option value="C-Very Low Risk" selected>C-Very Low Risk</option>
+              <option value="D-Very Low Risk">D-Very Low Risk</option>
+              <option value="E-Low Risk">E-Low Risk</option>
+              <option value="F-Low Risk">F-Low Risk</option>
+              <option value="G-Low Risk">G-Low Risk</option>
+              <option value="H-Medium Risk">H-Medium Risk</option>
+              <option value="I-Medium Risk">I-Medium Risk</option>
+              <option value="J-High Risk">J-High Risk</option>
+              <option value="K-High Risk">K-High Risk</option>
+              <option value="No Bureau History Available">No Bureau History Available</option>
+            </select>
+          </div>
+          <div class="sub-grid">
+            <div class="input-group">
+              <label>Primary Sanctioned (₹)</label>
+              <input type="number" id="loan-sanctioned" value="50000" step="5000">
+            </div>
+            <div class="input-group">
+              <label>Primary Disbursed (₹)</label>
+              <input type="number" id="loan-disbursed-pri" value="50000" step="5000">
+            </div>
+          </div>
+          <label style="font-size: 0.85rem; font-weight: 600; color: #cbd5e1; margin-bottom: 8px; display: block;">Verification Documents</label>
+          <div class="sub-grid">
+            <label class="checkbox-item"><input type="checkbox" id="doc-aadhar" checked> Aadhar Card Verified</label>
+            <label class="checkbox-item"><input type="checkbox" id="doc-pan"> PAN Card Verified</label>
+            <label class="checkbox-item"><input type="checkbox" id="doc-voter"> Voter ID Verified</label>
+            <label class="checkbox-item"><input type="checkbox" id="doc-driving"> Driving License Verified</label>
+          </div>
+          <button class="btn-action" onclick="predictLoan()">🔍 Assess Loan Default Risk</button>
+        </div>
+
+        <div>
+          <div class="result-card" id="loan-result-card" style="border-color: #10b981; background: rgba(16, 185, 129, 0.1);">
+            <div style="font-size: 0.85rem; color: #10b981; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700;">
+              Risk Assessment: LOW RISK
+            </div>
+            <div class="result-price" id="loan-status-display" style="color: #10b981;">NO DEFAULT</div>
+            <div style="color: var(--text-muted); font-size: 0.95rem;" id="loan-prob-display">
+              Default Probability: <b>18.4%</b>
+            </div>
+            <span class="badge badge-success" id="loan-badge">✅ High Likelihood of Timely Repayment</span>
+          </div>
+          <div class="chart-box" id="loan-gauge-container" style="height: 250px;"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: CLUSTERING -->
+    <section class="tab-panel" id="tab-2">
+      <div class="two-col">
+        <div class="input-section">
+          <h3 style="margin-bottom: 16px; color: var(--primary);">👥 Customer Profile Attributes</h3>
+          <div class="input-group">
+            <label>Annual Household Income ($)</label>
+            <input type="number" id="cust-income" value="65000" step="2500">
+          </div>
+          <div class="sub-grid">
+            <div class="input-group">
+              <label>Education Level</label>
+              <select id="cust-edu">
+                <option value="Graduation" selected>Graduation</option>
+                <option value="PhD">PhD</option>
+                <option value="Master">Master</option>
+                <option value="2n Cycle">2n Cycle</option>
+                <option value="Basic">Basic</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label>Marital Status</label>
+              <select id="cust-marital">
+                <option value="Married" selected>Married</option>
+                <option value="Together">Together</option>
+                <option value="Single">Single</option>
+                <option value="Divorced">Divorced</option>
+              </select>
+            </div>
+          </div>
+          <div class="sub-grid">
+            <div class="input-group">
+              <label>Small Children at Home</label>
+              <input type="number" id="cust-kid" value="0" min="0" max="3">
+            </div>
+            <div class="input-group">
+              <label>Teenagers at Home</label>
+              <input type="number" id="cust-teen" value="1" min="0" max="3">
+            </div>
+          </div>
+          <div class="sub-grid">
+            <div class="input-group">
+              <label>Annual Wine Spend ($)</label>
+              <input type="number" id="cust-wine" value="450" step="50">
+            </div>
+            <div class="input-group">
+              <label>Annual Meat Spend ($)</label>
+              <input type="number" id="cust-meat" value="250" step="50">
+            </div>
+          </div>
+          <div class="sub-grid">
+            <div class="input-group">
+              <label>Web Purchases / Month</label>
+              <input type="number" id="cust-web" value="6" min="0" max="30">
+            </div>
+            <div class="input-group">
+              <label>Store Purchases / Month</label>
+              <input type="number" id="cust-store" value="8" min="0" max="30">
+            </div>
+          </div>
+          <button class="btn-action" onclick="predictCluster()">🎯 Assign Customer Segment</button>
+        </div>
+
+        <div>
+          <div class="result-card" id="cluster-result-card" style="border-color: #38bdf8;">
+            <div style="font-size: 0.85rem; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.08em;">Assigned Personality Segment</div>
+            <div class="result-price" id="cluster-name-display" style="font-size: 2.2rem; color: #38bdf8;">Digital Active Shoppers</div>
+            <p style="color: #cbd5e1; font-size: 0.95rem; margin-top: 8px;" id="cluster-desc-display">
+              Moderate-high income with high engagement in digital channels and web store discounts.
+            </p>
+          </div>
+          <div class="chart-box">
+            <h4 style="font-size: 0.9rem; color: var(--primary); margin-bottom: 8px;">2D PCA Projection Map</h4>
+            <div id="pca-scatter-container" style="height: 250px;"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: BENCHMARKS -->
+    <section class="tab-panel" id="tab-3">
+      <div class="input-section" style="margin-bottom: 24px;">
+        <h3 style="color: var(--primary); margin-bottom: 12px;">📊 Classification Models Benchmark (All 10 Models)</h3>
+        <div id="clf-bar-container" style="height: 340px;"></div>
+        <div style="overflow-x: auto; margin-top: 16px;">
+          <table>
+            <thead>
+              <tr>
+                <th>Model</th>
+                <th>Accuracy</th>
+                <th>Precision</th>
+                <th>Recall</th>
+                <th>F1-Score</th>
+                <th>ROC-AUC</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>AdaBoost (B)</td><td>78.29%</td><td>0.613</td><td>0.783</td><td>0.688</td><td>0.619</td></tr>
+              <tr><td>Gradient Boosting (B)</td><td>78.28%</td><td>0.675</td><td>0.783</td><td>0.688</td><td>0.622</td></tr>
+              <tr><td>SVC - Linear SVM (A)</td><td>78.26%</td><td>0.694</td><td>0.783</td><td>0.688</td><td>0.621</td></tr>
+              <tr><td>MLP Neural Network (B)</td><td>78.22%</td><td>0.671</td><td>0.782</td><td>0.688</td><td>0.587</td></tr>
+              <tr><td>Logistic Regression (A)</td><td>78.22%</td><td>0.688</td><td>0.782</td><td>0.689</td><td>0.628</td></tr>
+              <tr><td>Random Forest (B)</td><td>77.31%</td><td>0.687</td><td>0.773</td><td>0.698</td><td>0.580</td></tr>
+              <tr><td>Bagging (B)</td><td>76.25%</td><td>0.676</td><td>0.762</td><td>0.697</td><td>0.552</td></tr>
+              <tr><td>Decision Tree (A)</td><td>74.92%</td><td>0.676</td><td>0.749</td><td>0.698</td><td>0.572</td></tr>
+              <tr><td>K-Nearest Neighbors (A)</td><td>74.37%</td><td>0.678</td><td>0.744</td><td>0.700</td><td>0.552</td></tr>
+              <tr><td>Gaussian Naive Bayes (A)</td><td>42.35%</td><td>0.703</td><td>0.423</td><td>0.449</td><td>0.571</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="input-section">
+        <h3 style="color: var(--primary); margin-bottom: 12px;">👥 Clustering Quality Comparison (K-Means vs Agglomerative)</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Algorithm</th>
+              <th>Silhouette Score</th>
+              <th>Davies-Bouldin Index</th>
+              <th>Calinski-Harabasz Index</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><b>K-Means (k=4)</b></td><td>0.1762</td><td>1.8712</td><td>366.51</td></tr>
+            <tr><td><b>Agglomerative Hierarchical</b></td><td>0.1473</td><td>2.0421</td><td>305.73</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer>
+      AutoValuate AI Suite • Production Ready on Vercel • Powered by Scikit-Learn & Serverless Inference
+    </footer>
+  </div>
+
+  <script>
+    function switchTab(index) {
+      document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+        btn.classList.toggle('active', i === index);
+      });
+      document.querySelectorAll('.tab-panel').forEach((panel, i) => {
+        panel.classList.toggle('active', i === index);
+      });
+      if (index === 0) renderCarGauge(67.6);
+      if (index === 1) renderLoanGauge(18.4);
+      if (index === 2) loadClusterScatter();
+      if (index === 3) renderBenchmarkChart();
+    }
+
+    function updateAge() {
+      const year = parseInt(document.getElementById('reg-year').value) || 2018;
+      const age = 2026 - year;
+      document.getElementById('reg-age-text').textContent = `Estimated Vehicle Age: ${age} years`;
+    }
+
+    function calcLTV() {
+      const d = parseFloat(document.getElementById('loan-disbursed').value) || 0;
+      const a = parseFloat(document.getElementById('loan-asset').value) || 1;
+      const ltv = ((d / a) * 100).toFixed(2);
+      document.getElementById('ltv-display').innerHTML = `Calculated LTV: <b>${ltv}%</b>`;
+    }
+
+    // Gauge charts
+    function renderCarGauge(value) {
+      const data = [{
+        type: "indicator",
+        mode: "gauge+number",
+        value: value,
+        number: { suffix: "%", font: { size: 22, color: "#38bdf8" } },
+        title: { text: "Value Retention vs Showroom", font: { size: 13, color: "#94a3b8" } },
+        gauge: {
+          axis: { range: [0, 100], tickcolor: "#94a3b8" },
+          bar: { color: "#38bdf8" },
+          bgcolor: "#1e293b",
+          steps: [
+            { range: [0, 40], color: "rgba(239, 68, 68, 0.25)" },
+            { range: [40, 70], color: "rgba(245, 158, 11, 0.25)" },
+            { range: [70, 100], color: "rgba(16, 185, 129, 0.25)" }
+          ]
+        }
+      }];
+      Plotly.newPlot('gauge-container', data, {
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        height: 220,
+        margin: { l: 25, r: 25, t: 25, b: 10 }
+      }, { responsive: true, displayModeBar: false });
+    }
+
+    function renderLoanGauge(prob) {
+      const color = prob > 50 ? "#ef4444" : "#10b981";
+      const data = [{
+        type: "indicator",
+        mode: "gauge+number",
+        value: prob,
+        number: { suffix: "%", font: { size: 22, color: color } },
+        title: { text: "Default Probability Gauge", font: { size: 13, color: "#94a3b8" } },
+        gauge: {
+          axis: { range: [0, 100], tickcolor: "#94a3b8" },
+          bar: { color: color },
+          bgcolor: "#1e293b",
+          steps: [
+            { range: [0, 30], color: "rgba(16, 185, 129, 0.25)" },
+            { range: [30, 60], color: "rgba(245, 158, 11, 0.25)" },
+            { range: [60, 100], color: "rgba(239, 68, 68, 0.25)" }
+          ]
+        }
+      }];
+      Plotly.newPlot('loan-gauge-container', data, {
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        height: 220,
+        margin: { l: 25, r: 25, t: 25, b: 10 }
+      }, { responsive: true, displayModeBar: false });
+    }
+
+    // API calls
+    async function predictCar() {
+      const payload = {
+        action: 'predict_car',
+        data: {
+          brand: document.getElementById('reg-brand').value,
+          car_age: 2026 - parseInt(document.getElementById('reg-year').value),
+          present_price: parseFloat(document.getElementById('reg-price').value),
+          kms_driven: parseInt(document.getElementById('reg-kms').value),
+          fuel_type: document.getElementById('reg-fuel').value,
+          transmission: document.getElementById('reg-trans').value,
+          seller_type: document.getElementById('reg-seller').value,
+          owner: parseInt(document.getElementById('reg-owner').value)
+        }
+      };
+
+      try {
+        const res = await fetch('/api/predict', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const json = await res.json();
+        if (json.success) {
+          const d = json.data;
+          document.getElementById('car-price-display').textContent = `₹ ${d.predicted_price.toFixed(2)} Lakhs`;
+          document.getElementById('car-ci-display').innerHTML = `Confidence Interval (±MAE): <b>₹ ${d.lower_bound.toFixed(2)} L</b> — <b>₹ ${d.upper_bound.toFixed(2)} L</b>`;
+          renderCarGauge(d.retention_rate);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function predictLoan() {
+      const payload = {
+        action: 'predict_loan',
+        data: {
+          disbursed_amount: parseFloat(document.getElementById('loan-disbursed').value),
+          asset_cost: parseFloat(document.getElementById('loan-asset').value),
+          employment_type: document.getElementById('loan-emp').value,
+          cns_score: parseFloat(document.getElementById('loan-cns').value),
+          cns_desc: document.getElementById('loan-cns-desc').value,
+          pri_sanctioned: parseFloat(document.getElementById('loan-sanctioned').value),
+          pri_disbursed: parseFloat(document.getElementById('loan-disbursed-pri').value),
+          aadhar_flag: document.getElementById('doc-aadhar').checked ? 1 : 0,
+          pan_flag: document.getElementById('doc-pan').checked ? 1 : 0,
+          voter_flag: document.getElementById('doc-voter').checked ? 1 : 0,
+          driving_flag: document.getElementById('doc-driving').checked ? 1 : 0
+        }
+      };
+
+      try {
+        const res = await fetch('/api/predict', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const json = await res.json();
+        if (json.success) {
+          const d = json.data;
+          const isDef = d.is_default;
+          const card = document.getElementById('loan-result-card');
+          card.style.borderColor = isDef ? '#ef4444' : '#10b981';
+          card.style.background = isDef ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)';
+
+          document.getElementById('loan-status-display').textContent = isDef ? 'DEFAULT ALERT' : 'NO DEFAULT';
+          document.getElementById('loan-status-display').style.color = isDef ? '#ef4444' : '#10b981';
+          document.getElementById('loan-prob-display').innerHTML = `Default Probability: <b>${d.probability}%</b>`;
+          
+          const badge = document.getElementById('loan-badge');
+          badge.className = `badge ${isDef ? 'badge-danger' : 'badge-success'}`;
+          badge.textContent = isDef ? '⚠️ High Default Risk (Verification Advised)' : '✅ High Likelihood of Timely Repayment';
+
+          renderLoanGauge(d.probability);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function predictCluster() {
+      const payload = {
+        action: 'predict_cluster',
+        data: {
+          income: parseFloat(document.getElementById('cust-income').value),
+          education: document.getElementById('cust-edu').value,
+          marital_status: document.getElementById('cust-marital').value,
+          kidhome: parseInt(document.getElementById('cust-kid').value),
+          teenhome: parseInt(document.getElementById('cust-teen').value),
+          wine: parseFloat(document.getElementById('cust-wine').value),
+          meat: parseFloat(document.getElementById('cust-meat').value),
+          web_purchases: parseInt(document.getElementById('cust-web').value),
+          store_purchases: parseInt(document.getElementById('cust-store').value)
+        }
+      };
+
+      try {
+        const res = await fetch('/api/predict', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const json = await res.json();
+        if (json.success) {
+          const d = json.data;
+          const card = document.getElementById('cluster-result-card');
+          card.style.borderColor = d.color;
+          document.getElementById('cluster-name-display').textContent = d.segment_name;
+          document.getElementById('cluster-name-display').style.color = d.color;
+          document.getElementById('cluster-desc-display').textContent = d.description;
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    // PCA scatter
+    let scatterLoaded = false;
+    async function loadClusterScatter() {
+      if (scatterLoaded) return;
+      try {
+        const res = await fetch('/cluster_data.json');
+        const rows = await res.json();
+        
+        const clusterMap = {
+          0: { name: 'Luxury & Connoisseur', color: '#8b5cf6' },
+          1: { name: 'Digital Active Shoppers', color: '#38bdf8' },
+          2: { name: 'High-Net-Worth Elites', color: '#10b981' },
+          3: { name: 'Budget & Economical', color: '#f59e0b' }
+        };
+
+        const traces = [0, 1, 2, 3].map(cid => {
+          const filtered = rows.filter(r => r.KMeans_Cluster === cid);
+          return {
+            x: filtered.map(r => r.PCA1),
+            y: filtered.map(r => r.PCA2),
+            mode: 'markers',
+            type: 'scatter',
+            name: clusterMap[cid].name,
+            marker: { size: 6, color: clusterMap[cid].color }
+          };
+        });
+
+        Plotly.newPlot('pca-scatter-container', traces, {
+          template: 'plotly_dark',
+          paper_bgcolor: 'rgba(0,0,0,0)',
+          plot_bgcolor: 'rgba(0,0,0,0)',
+          height: 250,
+          margin: { l: 30, r: 20, t: 10, b: 30 },
+          legend: { orientation: 'h', y: -0.2 }
+        }, { responsive: true, displayModeBar: false });
+        scatterLoaded = true;
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function renderBenchmarkChart() {
+      const models = ['GNB', 'KNN', 'Decision Tree', 'Bagging', 'Random Forest', 'MLP', 'LogReg', 'SVC Linear', 'Gradient Boost', 'AdaBoost'];
+      const acc = [42.35, 74.37, 74.92, 76.25, 77.31, 78.22, 78.22, 78.26, 78.28, 78.29];
+      const data = [{
+        x: acc,
+        y: models,
+        type: 'bar',
+        orientation: 'h',
+        marker: {
+          color: acc,
+          colorscale: 'Viridis'
+        }
+      }];
+      Plotly.newPlot('clf-bar-container', data, {
+        template: 'plotly_dark',
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        height: 320,
+        margin: { l: 120, r: 20, t: 10, b: 30 },
+        xaxis: { title: 'Accuracy (%)' }
+      }, { responsive: true, displayModeBar: false });
+    }
+
+    // Init defaults
+    window.addEventListener('DOMContentLoaded', () => {
+      renderCarGauge(67.6);
+    });
+  </script>
+</body>
+</html>
