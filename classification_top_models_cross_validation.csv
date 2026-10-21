@@ -1,3 +1,0 @@
-Model,CV weighted F1 mean,CV weighted F1 std,CV folds
-K-Nearest Neighbors (A),0.7021974050580003,0.001218567538162615,3
-Decision Tree (A),0.698595796857477,0.001301563812627375,3
